@@ -72,6 +72,3 @@ def reset():
             f.write(i)
         default.close()
         f.close()
-
-
-main()
