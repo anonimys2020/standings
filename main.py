@@ -1,74 +1,43 @@
-import json
+import json # импорт библиотеки
 
 
-def main():
-    print('1 Добавить команду')
-    print('2 Внести итоги матча')
-    print('3 Сброс настроек')
-    print('4 Выход')
-    command = int(input(('Выберите действие, введя номер пункта (цифра от 1 до 4): ')))
-    if command == 1:
-        add_team()
-    elif command == 2:
-        add_match()
-    elif command == 3:
-        reset()
-    elif command == 4:
-        exit()
-    else:
-        print('Ошибка! Введите число от 1 до 4!')
-    exit()
+def load():
+    with open('settings.json', 'r') as f: # открытие файла
+        settings = json.load(f) # получение данных
+    return settings
 
 
-def add_team():
-    with open('settings.json', 'r') as f:
-        settings = json.load(f)
-    f.close()
-    teams = len(settings['teams'])
-    name = str(input('Введите название команды: ')).title()
-    settings['teams'][str(teams + 1)] = {'name': name, 'points': 0}
-    with open('settings.json', 'w') as f:
-        json.dump(settings, f, ensure_ascii=False, indent=4)
-    f.close()
+def main(settings):
+    data = {}
+    # Работа с json файлом. Получение.
+    for i in settings['matches'].values():
+        if i['result'] == 1:
+            winner_id = i['team_ids'][0]
+            settings['teams'][str(winner_id)]['points'] += 3
+        elif i['result'] == 2:
+            winner_id = i['team_ids'][1]
+            settings['teams'][str(winner_id)]['points'] += 3
+        elif i['result'] == 0:
+            settings['teams'][str(i['team_ids'][0])]['points'] += 1
+            settings['teams'][str(i['team_ids'][1])]['points'] += 1
+        data[settings['teams'][str(i['team_ids'][0])]['name']] = settings['teams'][str(i['team_ids'][0])]['points']
+        data[settings['teams'][str(i['team_ids'][1])]['name']] = settings['teams'][str(i['team_ids'][1])]['points']
+    return data
 
 
-def add_match():
-    f = open('settings.json', 'r')
-    settings = json.load(f)
-    f.close()
-    teams = len(settings['teams'])
-    matches = len(settings['matches'])
-    name1 = str(input('Введите название команды 1: ')).title()
-    name2 = str(input('Введите название команды 2: ')).title()
-    team1_id, team2_id = None, None
-    for i in settings['teams'].keys():
-        if settings['teams'][i]['name'] == name1:
-            team1_id = int(i)
-        elif settings['teams'][i]['name'] == name2:
-            team2_id = int(i)
-    if team1_id and team2_id:
-        print('Какая команда выйграла? (1 или 2)')
-        print('Введите 0, если обе команды сыграли в ничью')
-        result = int(input('Ввод: '))
-        if result == 0 or result == 1 or result == 2:
-            settings['matches'][str(matches + 1)] = {'team_ids': [team1_id, team2_id], 'result': result}
-            with open('settings.json', 'w') as f:
-                json.dump(settings, f, ensure_ascii=False, indent=4)
-            f.close()
-        else:
-            print('Вводить можно только числа 0, 1, 2!')
-            exit(1)
-    else:
-        print('Такой команды нет в настройках!')
-        exit(1)
+def sort_dict(data):
+    # Сортировка
+    sorted_values = dict(sorted(data.items(), key=lambda x: x[1], reverse=True))
+    return sorted_values
 
 
-def reset():
-    ask = str(input('Вы уверены? (Да/Нет): '))
-    if ask.title() == "Да":
-        with open('settings.json', 'w') as f:
-            with open('default.json', 'r') as default:
-                for i in default.readlines():
-                    f.write(i)
-            default.close()
-        f.close()
+def view(sorted_dict, settings):
+    # Вывод
+    keys = []
+    for key in sorted_dict.keys():
+        keys += [key]
+    for i in range(len(keys)):
+        print(f'{i + 1}. {keys[i]} - {sorted_dict[keys[i]]}')
+
+
+view(sort_dict(main(load())), settings=load()) # запуск
