@@ -21,14 +21,14 @@ def main():
 
 
 def add_team():
-    f = open('settings.json', 'r')
-    settings = json.load(f)
+    with open('settings.json', 'r') as f:
+        settings = json.load(f)
     f.close()
     teams = len(settings['teams'])
     name = str(input('Введите название команды: ')).title()
     settings['teams'][str(teams + 1)] = {'name': name, 'points': 0}
-    f = open('settings.json', 'w')
-    json.dump(settings, f, ensure_ascii=False, indent=4)
+    with open('settings.json', 'w') as f:
+        json.dump(settings, f, ensure_ascii=False, indent=4)
     f.close()
 
 
@@ -52,8 +52,8 @@ def add_match():
         result = int(input('Ввод: '))
         if result == 0 or result == 1 or result == 2:
             settings['matches'][str(matches + 1)] = {'team_ids': [team1_id, team2_id], 'result': result}
-            f = open('settings.json', 'w')
-            json.dump(settings, f, ensure_ascii=False, indent=4)
+            with open('settings.json', 'w') as f:
+                json.dump(settings, f, ensure_ascii=False, indent=4)
             f.close()
         else:
             print('Вводить можно только числа 0, 1, 2!')
@@ -66,9 +66,9 @@ def add_match():
 def reset():
     ask = str(input('Вы уверены? (Да/Нет): '))
     if ask.title() == "Да":
-        f = open('settings.json', 'w')
-        default = open('default.json', 'r')
-        for i in default.readlines():
-            f.write(i)
-        default.close()
+        with open('settings.json', 'w') as f:
+            with open('default.json', 'r') as default:
+                for i in default.readlines():
+                    f.write(i)
+            default.close()
         f.close()
